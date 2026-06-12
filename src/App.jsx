@@ -7,7 +7,8 @@ import Flowers from "./pages/Flowers";
 import Cakes from "./pages/Cakes";
 import Gifts from "./pages/Gifts";
 import Cart from "./pages/Cart";
-import Checkout from "./pages/Checkout";
+import NewCheckout from "./pages/NewCheckout";
+import Decorations from "./pages/Decorations";
 import Login from "./pages/Login";
 import About from "./pages/About";
 import Terms from "./pages/Terms";
@@ -36,9 +37,10 @@ export default function App() {
                 <Route path="/flowers" element={<Flowers />} />
                 <Route path="/cakes" element={<Cakes />} />
                 <Route path="/gifts" element={<Gifts />} />
+                <Route path="/decorations" element={<Decorations />} />
                 <Route path="/search" element={<Search />} />
                 <Route path="/cart" element={<Cart />} />
-                <Route path="/checkout" element={<Checkout />} />
+                <Route path="/checkout" element={<NewCheckout />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/about" element={<About />} />
                 <Route path="/terms" element={<Terms />} />

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
 export default function Navbar() {
@@ -13,6 +13,7 @@ export default function Navbar() {
     { name: "Flowers", path: "/flowers" },
     { name: "Cakes", path: "/cakes" },
     { name: "Gifts", path: "/gifts" },
+    { name: "Decorations", path: "/decorations" },
     { name: "Contact", path: "/contact" },
     { name: "Cart", path: "/cart" },
   ];
@@ -22,6 +23,9 @@ export default function Navbar() {
     return currentPath.startsWith(path);
   };
 
+  const recognitionRef = useRef(null);
+  const [listening, setListening] = useState(false);
+
   const handleSearch = (event) => {
     event.preventDefault();
     const query = searchTerm.trim();
@@ -29,6 +33,40 @@ export default function Navbar() {
     navigate(`/search?q=${encodeURIComponent(query)}`);
     setSearchTerm("");
     setIsOpen(false);
+  };
+
+  const handleVoiceSearch = () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) return;
+
+    if (!recognitionRef.current) {
+      const recognition = new SpeechRecognition();
+      recognition.lang = "en-IN";
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        setSearchTerm(transcript);
+        navigate(`/search?q=${encodeURIComponent(transcript)}`);
+        setListening(false);
+        setIsOpen(false);
+      };
+      recognition.onerror = () => {
+        setListening(false);
+      };
+      recognition.onend = () => {
+        setListening(false);
+      };
+      recognitionRef.current = recognition;
+    }
+
+    if (listening) {
+      recognitionRef.current.stop();
+      setListening(false);
+    } else {
+      setListening(true);
+      recognitionRef.current.start();
+    }
   };
 
   return (
@@ -65,8 +103,14 @@ export default function Navbar() {
                   placeholder="Search gifts, flowers, cakes..."
                   className="w-full border-none bg-transparent px-4 py-3 text-sm text-gray-700 outline-none"
                 />
-                <button
-                  type="submit"
+                <button                  type="button"
+                  onClick={handleVoiceSearch}
+                  className="flex h-full items-center justify-center border-l border-gray-200 px-4 text-[#8f270e] transition hover:bg-gray-50"
+                  aria-label="Voice search"
+                >
+                  {listening ? "🎙️" : "🎤"}
+                </button>
+                <button                  type="submit"
                   className="rounded-full bg-[#8f270e] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#7a2310]"
                 >
                   Search

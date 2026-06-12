@@ -1,23 +1,38 @@
-import { Link, useLocation } from "react-router-dom";
-import { useMemo } from "react";
-import { allProducts } from "../data/products";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useSearch } from "../context/SearchContext";
+import ProductCard from "../components/storefront/ProductCard";
 
 function useQuery() {
   return new URLSearchParams(useLocation().search);
 }
 
 export default function Search() {
+  const { searchWithQuery } = useSearch();
+  const location = useLocation();
+  const navigate = useNavigate();
   const query = useQuery();
-  const searchTerm = query.get("q")?.trim() || "";
-  const lowerSearchTerm = searchTerm.toLowerCase();
+  const initialSearch = query.get("q")?.trim() || "";
+  const [searchTerm, setSearchTerm] = useState(initialSearch);
+  const [debouncedTerm, setDebouncedTerm] = useState(initialSearch);
 
-  const results = useMemo(() => {
-    if (!lowerSearchTerm) return [];
-    return allProducts.filter((product) =>
-      product.name.toLowerCase().includes(lowerSearchTerm) ||
-      product.category.toLowerCase().includes(lowerSearchTerm)
-    );
-  }, [lowerSearchTerm]);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedTerm(searchTerm), 150);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  useEffect(() => {
+    if (initialSearch !== searchTerm) {
+      setSearchTerm(initialSearch);
+    }
+  }, [initialSearch]);
+
+  const results = useMemo(() => searchWithQuery(debouncedTerm), [debouncedTerm, searchWithQuery]);
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    navigate(`/search?q=${encodeURIComponent(searchTerm)}`);
+  };
 
   return (
     <div className="min-h-screen bg-[#fffaf8] text-gray-900 px-4 py-16 md:px-8">
@@ -28,17 +43,35 @@ export default function Search() {
           <p className="mt-3 text-gray-600">
             {searchTerm
               ? `Showing results for “${searchTerm}”`
-              : "Search cakes, flowers, gifts, cakes and more."
+              : "Search cakes, flowers, gifts, and decorations."
             }
           </p>
         </div>
 
+        <form onSubmit={handleSubmit} className="mb-8">
+          <div className="flex items-center overflow-hidden rounded-full border border-gray-300 bg-white shadow-sm focus-within:ring-2 focus-within:ring-[#8f270e]">
+            <input
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              type="text"
+              placeholder="Search gifts, flowers, cakes..."
+              className="w-full border-none bg-transparent px-4 py-3 text-sm text-gray-700 outline-none"
+            />
+            <button
+              type="submit"
+              className="rounded-full bg-[#8f270e] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#7a2310]"
+            >
+              Search
+            </button>
+          </div>
+        </form>
+
         {!searchTerm ? (
           <div className="rounded-3xl border border-dashed border-gray-300 bg-[#fff4ef] p-10 text-center">
             <p className="text-lg font-semibold text-gray-800 mb-3">No search query yet.</p>
-            <p className="text-sm text-gray-600">Type something in the navbar search to explore our products.</p>
+            <p className="text-sm text-gray-600">Type a term above to explore products instantly.</p>
             <div className="mt-8 flex flex-wrap justify-center gap-3 text-sm">
-              {['flowers', 'cakes', 'gifts', 'birthday', 'anniversary'].map((term) => (
+              {["flowers", "cakes", "gifts", "birthday", "anniversary"].map((term) => (
                 <Link
                   key={term}
                   to={`/search?q=${encodeURIComponent(term)}`}
@@ -63,12 +96,7 @@ export default function Search() {
         ) : (
           <div className="grid gap-6 md:grid-cols-3">
             {results.map((product) => (
-              <Link key={product.id} to={`/product/${product.id}`} className="rounded-3xl border border-gray-200 bg-white p-4 shadow-sm hover:shadow-lg transition">
-                <img src={product.image} alt={product.name} className="mb-4 h-44 w-full rounded-3xl object-cover" />
-                <p className="text-sm text-gray-500">{product.category}</p>
-                <h2 className="mt-2 text-lg font-semibold text-gray-900">{product.name}</h2>
-                <p className="mt-4 text-xl font-bold text-[#8f270e]">₹{product.price}</p>
-              </Link>
+              <ProductCard key={product.id} item={product} />
             ))}
           </div>
         )}

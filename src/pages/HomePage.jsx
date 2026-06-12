@@ -3,6 +3,7 @@ import Header from '../components/storefront/Header';
 import HeroSlider from '../components/storefront/HeroSlider';
 import OccasionStrip from '../components/storefront/OccasionStrip';
 import CategoryGrid from '../components/storefront/CategoryGrid';
+import GiftFinder from '../components/storefront/GiftFinder';
 import HorizontalSection from '../components/storefront/HorizontalSection';
 import ProductCard from '../components/storefront/ProductCard';
 import TwoColGrid from '../components/storefront/TwoColGrid';
@@ -31,6 +32,7 @@ export default function HomePage() {
       <Header />
       <main className="pb-16">
         <HeroSlider />
+        <GiftFinder />
         <OccasionStrip />
         <CategoryGrid />
         <HorizontalSection title="Trending Gifts on King Baker's" subtitle="Wide Range of Options" items={trendingProducts} CardComponent={ProductCard} />
